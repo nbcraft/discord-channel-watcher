@@ -1,0 +1,15 @@
+# Hide the Actual Config File Since it May Contain Webhook URL's and User token
+config.json
+config_example.json
+
+# Hide Docker stuff
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Hide git stuff
+.git/
+.gitignore
+
+# Hide docker build output
+discord-channel-watcher.tar

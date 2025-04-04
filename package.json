@@ -1,0 +1,14 @@
+{
+  "name": "discord-channel-watcher",
+  "version": "1.0.0",
+  "description": "A discord selfbot that monitor channels and forwards messages",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "dependencies": {
+    "discord.js-selfbot-v13": "^3.6.1",
+    "node-fetch": "^2.7.0"
+  }
+}

@@ -1,0 +1,8 @@
+# Hide the Actual Config File Since it May Contain Webhook URL's and User tokens
+config.json
+
+# Node modules
+node_modules
+
+# Hide docker build output
+discord-channel-watcher.tar

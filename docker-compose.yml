@@ -1,0 +1,11 @@
+version: '3.5'
+services:
+  discord-channel-watcher:
+    image: nbcraft/discord-channel-watcher:1.0.0
+    container_name: discord-channel-watcher
+    network_mode: 'bridge'
+    volumes:
+      - /volume1/docker/discord-channel-watcher/config.json:/usr/src/app/config.json
+    restart: 'unless-stopped'
+    environment:
+      - TZ='America/Vancouver'

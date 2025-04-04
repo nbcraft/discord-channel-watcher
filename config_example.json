@@ -1,0 +1,25 @@
+{
+    "watcherUserToken": "<your_user_token_though_env_var_is_preferable_to_this>",
+    "defaultWebhook": "https://discord.com/api/webhooks/<some_id>",
+    "channels": [
+        {
+            "_comment": "You can set a comment here to remember which servers/authors this is watching",
+            "watchChannelIds": ["1000000000000000001", "1000000000000000002", "1000000000000000003"],
+            "roles": {
+                "950000000000000001": "Role 1",
+                "950000000000000002": "Role 2",
+                "950000000000000003": "Role 3",
+                "950000000000000004": "Role 4"
+            },
+            "useRolesAsKeywords": true,
+            "keywords": ["announcement"],
+            "authors": ["5000000000000000001"]
+        },
+        {
+            "_comment": "You can set a comment here to remember which servers/authors this is watching",
+            "watchChannelIds": "1000000000000000004",
+            "authors": ["5000000000000000002"],
+            "webhookUrl": "https://discord.com/api/webhooks/<some_id>"
+        }
+    ]
+}
