@@ -13,7 +13,8 @@ const CONFIG_MAP = config.channels.reduce((memo, conf) => {
   if (useRolesAsKeywords) {
     remainingConf.keywords = remainingConf.keywords.concat(Object.values(remainingConf.roles));
   }
-  const matchRegex = Object.keys(remainingConf.roles).concat(remainingConf.keywords).join( '|' );
+  const matchRegex = Object.keys(remainingConf.roles).concat(remainingConf.keywords).join( '|' ) ||
+                     '$-'; // Impossible regex that won't ever match; for when no role and keyword
   remainingConf.matchRegex = new RegExp(matchRegex, 'i');
   // Wrapping watchChannelIds in case a single id was given; assigning conf to each id
   [].concat(watchChannelIds).forEach((watchChannelId) => memo[watchChannelId] = remainingConf);
