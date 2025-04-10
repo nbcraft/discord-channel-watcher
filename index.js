@@ -5,6 +5,9 @@ import config from './config.json' with { type: 'json' };
 const WATCHER_USER_TOKEN = process.env.WATCHER_USER_TOKEN || config.watcherUserToken;
 const DEFAULT_WEBHOOK = process.env.DEFAULT_WEBHOOK || config.defaultWebhook;
 
+const ROLE_REGEX = new RegExp('<@&\\d+>', 'i'); // Used to check for the presence of a Role
+
+// Build a config map with channelId as key and prepare regex
 const CONFIG_MAP = config.channels.reduce((memo, conf) => {
   const { _comment, watchChannelIds, useRolesAsKeywords, ...remainingConf } = conf;
   remainingConf.roles ||= {};
@@ -22,8 +25,6 @@ const CONFIG_MAP = config.channels.reduce((memo, conf) => {
 }, {});
 
 const WATCHED_CHANNEL_IDS = Object.keys(CONFIG_MAP);
-
-const ROLE_REGEX = new RegExp('<@&\\d+>', 'i'); // Used to check for the presence of a Role
 
 const client = new Client();
 
@@ -45,30 +46,16 @@ function log(msg) {
 }
 
 function messageMatches({ channelId, author, content, embeds }) {
-  if (WATCHED_CHANNEL_IDS.includes(channelId)) {
-    console.log(`\nchannelId: ${channelId}`);
-    console.log(`author: ${CONFIG_MAP[channelId].authors.includes(author.id)}`);
-    console.log(`content: ${CONFIG_MAP[channelId].matchRegex.test(content)}`);
-    embeds.forEach((embed) => {
-      [embed.title, embed.description, embed.author?.name, embed.footer?.text]
+  return WATCHED_CHANNEL_IDS.includes(channelId) && (
+    CONFIG_MAP[channelId].authors.includes(author.id) ||
+    CONFIG_MAP[channelId].matchRegex.test(content) ||
+    embeds.some((embed) => {
+      return [embed.title, embed.description, embed.author?.name, embed.footer?.text]
         .concat(embed.fields.flatMap(field => [field.value, field.name]))
-        .filter(n => n) // compact - remove nil
-        .forEach((text) => console.log(`(embed text) ${text} : ${CONFIG_MAP[channelId].matchRegex.test(text)}`));
-    });
-    const res = WATCHED_CHANNEL_IDS.includes(channelId) && (
-      CONFIG_MAP[channelId].authors.includes(author.id) ||
-      CONFIG_MAP[channelId].matchRegex.test(content) ||
-      embeds.some((embed) => {
-        return [embed.title, embed.description, embed.author?.name, embed.footer?.text]
-          .concat(embed.fields.flatMap(field => [field.value, field.name]))
-          .filter(n => n) // compact - remove nil
-          .some((text) => CONFIG_MAP[channelId].matchRegex.test(text));
-      })
-    );
-    console.log(`res: ${res}`);
-    return res;
-  }
-  return false;
+        .filter(n => n) // compact - remove nils
+        .some((text) => CONFIG_MAP[channelId].matchRegex.test(text));
+    })
+  );
 }
 
 async function sendWebhook(message) {
@@ -78,8 +65,7 @@ async function sendWebhook(message) {
     headers: { 'Content-type': 'application/json' },
     body: JSON.stringify(params)
   }).then(response => {
-    if (response.ok) {
-      // response.status >= 200 && response.status < 300
+    if (response.ok) { // response.status >= 200 && response.status < 300
       log(`Sent: ${JSON.stringify(params)}`);
     } else {
       log(`Failure: ${response.status}`);
@@ -124,9 +110,10 @@ function replaceRoles(string, channelId, bold = true) {
   if (!ROLE_REGEX.test(string)) {
     return string; // exit early if string doesn't contain a role reference
   }
+  const bolding = bold ? '**' : '';
   let res = string;
   for (const [key, value] of Object.entries(CONFIG_MAP[channelId]?.roles || [])) {
-    res = res.replaceAll(`<@&${key}>`, `${bold ? '**' : ''}@${value}${bold ? '**' : ''}`);
+    res = res.replaceAll(`<@&${key}>`, `${bolding}@${value}${bolding}`);
   }
   return res;
 };
