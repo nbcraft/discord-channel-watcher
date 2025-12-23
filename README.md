@@ -2,6 +2,7 @@
 
 > [!CAUTION]
 > **Using this on a user account is prohibited by the [Discord TOS](https://discord.com/terms) and can lead to the account getting blocked.**  
+> **I have seen it happen to an account already.**  
 > **I do not take any responsibility for blocked Discord accounts that used this program.**  
 > **When using this program, you accept the risk of exposing your Discord Token.**
 
