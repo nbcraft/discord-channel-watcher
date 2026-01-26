@@ -1,6 +1,12 @@
 import { Client } from 'discord.js-selfbot-v13';
 import fetch from 'node-fetch';
+import fetchRetry from 'fetch-retry'; //= require('fetch-retry')(fetch);
 import config from './config.json' with { type: 'json' };
+
+const fetches = fetchRetry(fetch, {
+  retries: process.env.FETCH_RETRIES || 5,
+  retryDelay: process.env.FETCH_RETRY_DELAY || 800,
+});
 
 const WATCHER_USER_TOKEN = process.env.WATCHER_USER_TOKEN || config.watcherUserToken;
 const DEFAULT_WEBHOOK = process.env.DEFAULT_WEBHOOK || config.defaultWebhook;
@@ -13,6 +19,8 @@ const CONFIG_MAP = config.channels.reduce((memo, conf) => {
   remainingConf.roles ||= {};
   remainingConf.keywords ||= [];
   remainingConf.authors ||= [];
+  remainingConf.pingAuthorId ||= false;
+  remainingConf.msgFormat ||= 'full';
   if (useRolesAsKeywords) {
     remainingConf.keywords = remainingConf.keywords.concat(Object.values(remainingConf.roles));
   }
@@ -60,7 +68,7 @@ function messageMatches({ channelId, author, content, embeds }) {
 
 async function sendWebhook(message) {
   const params = buildMessageParams(message);
-  fetch(CONFIG_MAP[message.channelId]?.webhookUrl || DEFAULT_WEBHOOK, {
+  fetches(CONFIG_MAP[message.channelId]?.webhookUrl || DEFAULT_WEBHOOK, {
     method: 'POST',
     headers: { 'Content-type': 'application/json' },
     body: JSON.stringify(params)
@@ -78,14 +86,25 @@ async function sendWebhook(message) {
 }
 
 function buildMessageParams(message) {
+  const conf = CONFIG_MAP[message.channelId];
+  const author = conf.pingAuthorId ?
+    `<@${message.author?.id}>` :
+    `**@${message.author?.globalName || message.author?.username}**`;
   const msgLink = `https://discord.com/channels/${message.guildId}/${message.channelId}/${message.id}`;
-  const headerLine = `<@${message.author?.id}> in ${msgLink} \n`;
+  const lineHeader = conf.msgFormat == 'full' ? `${author} in ${msgLink}\n` : '';
+  const lineEnd = {
+    'full': '',
+    'short': ` - [${author}](${msgLink})`,
+    'link': ` ${msgLink}`,
+    'link-tiny': ` [:link:](${msgLink})`,
+    'none': '',
+  }[conf.msgFormat] ?? ''; // default
   const images = []; // prepare images as embeds
   message.attachments.values().forEach((attachment) => {
     images.push({ image: { url: attachment.url } });
   });
   return {
-    content: `${headerLine}${replaceRoles(message.content, message.channelId)}`,
+    content: `${lineHeader}${replaceRoles(message.content, message.channelId)}${lineEnd}`,
     embeds: message.embeds.map((embed) => {
       if (typeof embed.title === 'string')
         embed.title = replaceRoles(embed.title, message.channelId);

@@ -14,7 +14,7 @@
 
 <strong>Welcome to `discord-channel-watcher`, a Discord selfbot to monitor/watch any channel and forward messages that match the configured criterion (keywords, authors, and/or roles)</strong>
 
-If like me, you've ever been part of Discord servers that you mostly want to have muted, but would like to recieve notifications for certain keywords, certain roles, or certains user messages, then this might help you.  
+If like me, you've ever been part of Discord servers that you mostly want to keep muted, but would like to receive notifications for certain keywords, certain roles, or messages from a specific user, then this might help you.  
 
 This program will listen to specific channels, and forward matching messages to a channel of your choice (maybe in a Discord server you control) by using webhooks.
 
